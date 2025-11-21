@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: |
+            package-lock.json
+            client/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci
+
+      - name: Install client dependencies
+        run: npm run client-install
+
+      - name: Run linter
+        run: npm run lint || true
+        continue-on-error: true
+
+      - name: Build client
+        run: npm run build --prefix client
+        env:
+          NODE_ENV: production
+
+      - name: Check build output
+        run: |
+          if [ ! -d "client/dist" ]; then
+            echo "Build failed - dist folder not found"
+            exit 1
+          fi
+          echo "Build successful!"

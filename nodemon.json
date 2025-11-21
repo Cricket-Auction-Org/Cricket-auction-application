@@ -1,0 +1,20 @@
+{
+  "watch": [
+    "app.js",
+    "routes",
+    "controller",
+    "middleware",
+    "database",
+    "utilities",
+    "data"
+  ],
+  "ignore": [
+    "client/**/*",
+    "node_modules/**/*",
+    "*.log",
+    ".git"
+  ],
+  "ext": "js,json",
+  "exec": "node app.js"
+}
+
