@@ -4,7 +4,7 @@ const auth = (req, res, next) => {
   const { cookies } = req;
   if (cookies.jwt) {
     try {
-      const data = jwt.verify(cookies.jwt, process.env.SECRET);
+      const data = jwt.verify(cookies.jwt, process.env);
       req.id = data.id;
       req.token = cookies.jwt;
       return next();
@@ -13,8 +13,8 @@ const auth = (req, res, next) => {
     }
   }
 
-  return res.status(401).send({
-    success: false,
+  return res.status(200).send({
+    success: true,
     message: "Sorry you are not authenticated.",
   });
 };
