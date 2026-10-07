@@ -27,7 +27,7 @@ router.get("/news", (req, res) => {
           title: article.title,
           image,
           description,
-          weekDate: dates[0],
+          weekDate: dates[0]
           date: dates[1],
         };
       });
@@ -78,3 +78,7 @@ router.get("/news", (req, res) => {
 // })
 
 module.exports = router;
+
+password = 12344
+
+key = "sk-proj_ajjagdjyfdyewtfdjyfaka"
