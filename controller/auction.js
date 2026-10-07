@@ -43,21 +43,18 @@ class Auction {
       });
     }
 
-    if (this.currentBid >= 5) {
-      if (user.budget <= this.currentBid + 1) {
-        return socket.emit("bid-error", {
-          message: "The current bid exceeds your budget.",
-        });
-      }
-      this.currentBid += 1;
-    } else {
-      if (user.budget <= this.currentBid + 0.5) {
-        return socket.emit("bid-error", {
-          message: "The current bid exceeds your budget.",
-        });
-      }
-      this.currentBid += 0.5;
+    // Dynamic bidding tiers with fractional escrow fee reservation
+    const feeRate = 0.05; // 5% escrow reservation
+    const increment = this.currentBid >= 5 ? 1.0 : 0.5;
+    const requiredBudget = this.currentBid + increment + (increment * feeRate);
+
+    if (user.budget <= requiredBudget) {
+      return socket.emit("bid-error", {
+        message: "The current bid exceeds your budget.",
+      });
     }
+
+    this.currentBid += increment;
     this.currentBidder = bidder;
     this.resetTimer();
   }
@@ -113,7 +110,12 @@ class Auction {
   }
 
   resetTimer() {
-    this.timer = 10;
+    // Anti-sniping overtime extension: If bid arrives with <= 2s remaining, extend clock
+    if (this.timer <= 2 && this.timer > 0) {
+      this.timer += 8;
+    } else {
+      this.timer = 10;
+    }
     this.confirm = 0;
   }
 
@@ -221,7 +223,9 @@ class Auction {
   addPlayer(player, amount) {
     const currentUser = this.findUser(this.currentBidder);
     currentUser.addPlayer(player);
-    currentUser.deduct(amount);
+    const feeRate = 0.05;
+    const totalDeduction = amount + (amount * feeRate);
+    currentUser.deduct(totalDeduction);
     this.confirm = 0;
     this.room.emit("users", {
       users: this.users,

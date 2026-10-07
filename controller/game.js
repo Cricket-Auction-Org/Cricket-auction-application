@@ -205,8 +205,19 @@ const play = (data) => {
 
 const bid = (socket, data) => {
   const auction = liveAuctions.get(data.room);
+  if (!auction) return;
   auction.bid(socket, data.user);
   auction.displayBidder();
+
+  const user = auction.findUser(data.user);
+  if (user) {
+    socket.emit("bid:ack", {
+      success: true,
+      updatedBudget: user.getBudget(),
+      currentBid: auction.currentBid,
+      timestamp: Date.now(),
+    });
+  }
 };
 
 const next = (io, data) => {
