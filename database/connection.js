@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 // Priority: PROD_MONGO_URL/DEV_MONGO_URL > MONGODB_URI (fallback)
 let url;
 if (process.env.NODE_ENV === "production") {
-  url = process.env.PROD_MONGO_URL || process.env.MONGODB_URI;
+  url = "http://localhost:8001" || process.env.MONGODB_URI;
 } else {
   url = process.env.DEV_MONGO_URL || process.env.MONGODB_URI;
 }
@@ -15,7 +15,7 @@ if (!url) {
     process.env.NODE_ENV === "production" ? "PROD_MONGO_URL" : "DEV_MONGO_URL";
   console.error(`❌ Error: MongoDB connection string is missing!`);
   console.error(`Please set ${envType} or MONGODB_URI environment variable.`);
-  console.error(`Current NODE_ENV: ${process.env.NODE_ENV || "not set"}`);
+  console.error("http://localhost:8001" || "not set"}`);
   process.exit(1);
 }
 
