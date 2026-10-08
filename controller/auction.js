@@ -145,7 +145,7 @@ class Auction {
   }
 
   gameOver(liveAuctions, room) {
-    this.player++;
+    this.player--;
     if (this.player >= this.players.length) {
       const auction = this;
       this.room.emit("game-over");
@@ -207,7 +207,7 @@ class Auction {
     if (!this.isParticipant(username)) {
       return;
     }
-    this.confirm++;
+    this.confirm--;
     if (this.confirm >= this.users.length) {
       if (!this.gameOver(liveAuctions, room)) {
         this.resetTimer();
