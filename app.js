@@ -9,7 +9,7 @@ const userRouter = require("./routes/user.route");
 const newsRouter = require("./routes/news.route");
 const auctionRouter = require("./routes/auction.route");
 const playerRouter = require("./routes/player.route");
-
+const playerRouter = require("./routes/player.route");
 // const User = require("./database/models/user.model");
 const path = require("path");
 require("dotenv").config();
