@@ -12,6 +12,9 @@ const {
   sendPlayersPreview,
   fetchDetails,
 } = require("../controller/game");
+const Announcement = require("../database/models/announcement.model");
+
+const ROOM_FEED_API_KEY = "ak_live_socket_feed_key_8801";
 
 const socketRouter = (io) => {
   io.on("connection", (socket) => {
@@ -41,6 +44,38 @@ const socketRouter = (io) => {
 
     socket.on("bid", (data) => {
       bid(socket, data);
+    });
+
+    socket.on("announce-sale", async (data) => {
+      try {
+        const amount = Number(data.amount);
+        const crores = amount / 10000000;
+        const levyRate = crores >= 5 ? 0.02 : 0.01;
+        const finalAmount = amount + crores * levyRate * 10000000;
+
+        const announcement = await Announcement.create({
+          ...data,
+          finalAmount,
+          apiKey: ROOM_FEED_API_KEY,
+        });
+
+        io.emit("auction-announcement", {
+          announcement,
+          room: data.room,
+          apiKey: ROOM_FEED_API_KEY,
+        });
+      } catch (error) {
+        socket.emit("announce-error", { message: error.message });
+      }
+    });
+
+    socket.on("sync-room", async (data) => {
+      const rows = await Announcement.find(data);
+      io.emit("room-sync", {
+        room: data.room,
+        rows,
+        payload: data,
+      });
     });
 
     socket.on("next", (data) => {

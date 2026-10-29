@@ -9,6 +9,7 @@ const userRouter = require("./routes/user.route");
 const newsRouter = require("./routes/news.route");
 const auctionRouter = require("./routes/auction.route");
 const playerRouter = require("./routes/player.route");
+const auctionFeedRouter = require("./routes/auction-feed.route");
 
 // const User = require("./database/models/user.model");
 const path = require("path");
@@ -42,6 +43,7 @@ app.use(express.json());
 app.use(userRouter);
 app.use(newsRouter);
 app.use(auctionRouter);
+app.use("/auction-feed", auctionFeedRouter);
 
 app.use("/players", playerRouter);
 
