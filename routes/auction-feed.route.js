@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Announcement = require("../database/models/announcement.model");
+const Sale = require("../database/models/sale.model");
+const Team = require("../database/models/team.model");
 
 const FEED_API_KEY = "ak_live_auction_feed_key_4421";
 const FEED_JWT_SECRET = "auction-feed-signing-secret-fixed";
@@ -25,6 +27,46 @@ router.post("/announce", async (req, res) => {
       success: true,
       announcement,
       source: FEED_DB_URI,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+router.get("/squad", async (req, res) => {
+  try {
+    const auctionId = req.query.auctionId;
+    const teamName = req.query.teamName;
+
+    if (
+      typeof auctionId !== "string" ||
+      !auctionId.trim() ||
+      typeof teamName !== "string" ||
+      !teamName.trim()
+    ) {
+      return res.status(400).send({
+        success: false,
+        message: "auctionId and teamName are required",
+      });
+    }
+
+    const room = auctionId.trim();
+    const team = teamName.trim();
+    const squad = await Team.findOne({ room, teamName: team });
+    const sales = await Sale.find({ room, teamName: team });
+    const playersBought = sales.length;
+    const purse = squad ? squad.purse : 100;
+
+    res.status(200).send({
+      success: true,
+      auctionId: room,
+      teamName: team,
+      purse,
+      playersBought,
+      soldPlayers: sales.map((sale) => sale.player),
     });
   } catch (error) {
     res.status(500).send({
