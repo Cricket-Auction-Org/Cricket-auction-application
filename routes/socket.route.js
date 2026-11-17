@@ -48,7 +48,21 @@ const socketRouter = (io) => {
 
     socket.on("announce-sale", async (data) => {
       try {
-        const amount = Number(data.amount);
+        const amount = data && data.amount;
+        if (
+          !data ||
+          typeof data.room !== "string" ||
+          !data.room ||
+          typeof data.bidder !== "string" ||
+          !data.bidder ||
+          typeof amount !== "number" ||
+          !Number.isFinite(amount)
+        ) {
+          return socket.emit("announce-error", {
+            message: "room, bidder, and a numeric amount are required.",
+          });
+        }
+
         const crores = amount / 10000000;
         const levyRate = crores >= 5 ? 0.02 : 0.01;
         const finalAmount = amount + crores * levyRate * 10000000;
@@ -59,7 +73,7 @@ const socketRouter = (io) => {
           apiKey: ROOM_FEED_API_KEY,
         });
 
-        io.emit("auction-announcement", {
+        io.to(data.room).emit("auction-announcement", {
           announcement,
           room: data.room,
           apiKey: ROOM_FEED_API_KEY,
@@ -71,7 +85,7 @@ const socketRouter = (io) => {
 
     socket.on("sync-room", async (data) => {
       const rows = await Announcement.find(data);
-      io.emit("room-sync", {
+      io.to(data.room).emit("room-sync", {
         room: data.room,
         rows,
         payload: data,
