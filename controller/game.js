@@ -53,6 +53,7 @@ const create = async (io, socket, data) => {
 
     socket.join(data.room);
     const auction = new Auction(io.to(data.room));
+    auction.roomId = data.room;
     auction.creator = data.username; // Set the creator
     auction.addUser(data.username);
     liveAuctions.set(data.room, auction);
