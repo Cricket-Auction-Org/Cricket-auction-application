@@ -1,5 +1,7 @@
 const User = require("./user");
 const dbUser = require("../database/models/user.model");
+const Sale = require("../database/models/sale.model");
+const Team = require("../database/models/team.model");
 
 class Auction {
   constructor(room) {
@@ -27,6 +29,11 @@ class Auction {
   }
 
   bid(socket, bidder) {
+    if (!this.started) {
+      return socket.emit("bid-error", {
+        message: "The auction has not started.",
+      });
+    }
     if (this.currentBidder === bidder) {
       return;
     }
@@ -220,12 +227,43 @@ class Auction {
 
   addPlayer(player, amount) {
     const currentUser = this.findUser(this.currentBidder);
+    const purseBefore = currentUser.budget;
     currentUser.addPlayer(player);
     currentUser.deduct(amount);
+    this.recordSale(player, amount, purseBefore);
     this.confirm = 0;
     this.room.emit("users", {
       users: this.users,
     });
+  }
+
+  recordSale(player, amount, purseBefore) {
+    const room = this.roomId;
+    const teamName = this.currentBidder;
+
+    Sale.create({
+      room,
+      player,
+      teamName,
+      amount,
+    })
+      .then(() => Team.findOne({ room, teamName }))
+      .then((team) => {
+        if (!team) {
+          team = new Team({
+            room,
+            teamName,
+            purse: purseBefore,
+            players: [],
+          });
+        }
+        team.purse = Number(team.purse) - amount;
+        team.players.push(player);
+        return team.save();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
   fetchPlayers() {
